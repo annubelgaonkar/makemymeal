@@ -1,6 +1,11 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Chips, Header, Pill, Toast, chime, fmtTime, macros, mapsUrl, primeAudio } from "@/components/ui";
+import { INGREDIENTS } from "@/lib/menu";
+import { CheckIcon, Pill, Toast, TopBar, ago, chime, fmtClock, fmtTime, mapsUrl, primeAudio } from "@/components/ui";
+import { ICONS, LogoMark } from "@/components/art";
+
+const UNIT = { bread: (n) => (n === 1 ? "slice of bread" : "slices of bread"), pb: () => "tbsp peanut butter", banana: (n) => (n === 1 ? "banana" : "bananas") };
+const HINT = { bread: "Zero Maida", pb: "Pintola crunchy", banana: "medium, sliced" };
 
 export default function KitchenPage() {
   const [authed, setAuthed] = useState(null); // null = checking
@@ -72,80 +77,106 @@ export default function KitchenPage() {
     showToast(`${o.shortId} delivered · OTP verified`); load();
   }
 
+  const [, tick] = useState(0);
+  useEffect(() => { const t = setInterval(() => tick((x) => x + 1), 30000); return () => clearInterval(t); }, []);
+
   if (authed === false) {
     return (
-      <div className="wrap">
-        <Header active="kitchen" />
-        <form className="panel stack login" onSubmit={login}>
-          <h1 style={{ fontSize: 26 }}>Kitchen login</h1>
-          <p className="meta" style={{ margin: 0 }}>Enter the kitchen password to see orders.</p>
-          <div className="field"><label htmlFor="k-pass">Kitchen password</label>
-            <input id="k-pass" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus /></div>
-          <div className="err" role="alert">{loginErr}</div>
-          <button className="btn primary" type="submit">Open kitchen</button>
-        </form>
-      </div>
+      <>
+        <TopBar active="kitchen" />
+        <main className="kpage">
+          <form className="login" onSubmit={login}>
+            <div className="kicon"><LogoMark size={38} /></div>
+            <div><h1 style={{ fontSize: 32 }}>Kitchen</h1><p className="muted" style={{ marginTop: 6 }}>Enter the kitchen password to see incoming orders.</p></div>
+            <div className="field"><label htmlFor="k-pass">Kitchen password</label>
+              <input id="k-pass" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus /></div>
+            <div className="err" role="alert">{loginErr}</div>
+            <button className="btn btn-primary" type="submit">Open kitchen</button>
+          </form>
+        </main>
+      </>
     );
   }
 
   const active = orders.filter((o) => o.status !== "delivered");
+  const count = (st) => orders.filter((o) => o.status === st).length;
   let list = filter === "active" ? active : filter === "delivered" ? orders.filter((o) => o.status === "delivered") : orders.slice();
   list = list.sort((a, b) => (filter === "active" ? new Date(a.createdAt) - new Date(b.createdAt) : new Date(b.createdAt) - new Date(a.createdAt)));
 
   return (
-    <div className="wrap">
-      <Header active="kitchen" />
-      <main>
-        <section className="kitchen-bar">
-          <div><h1>Kitchen</h1><p className="lede">New orders arrive here with a chime. Ask the customer for their OTP at the door to complete delivery.</p></div>
-          {authed && <button className="btn small ghost" onClick={logout}>Log out</button>}
-        </section>
-        <section className="filters">
-          {[["active", `Active (${active.length})`], ["delivered", "Delivered"], ["all", "All"]].map(([k, l]) => (
-            <button key={k} aria-pressed={filter === k} onClick={() => setFilter(k)}>{l}</button>
-          ))}
-        </section>
-        <section className="stack">
-          {authed === null && <div className="empty">Loading orders…</div>}
-          {authed && !list.length && <div className="empty">{filter === "active" ? "No orders waiting. New ones appear here with a chime." : "Nothing here yet."}</div>}
+    <>
+      <TopBar active="kitchen" right={authed ? <button className="btn btn-ghost btn-sm" onClick={logout}>Log out</button> : null} />
+      <main className="kpage">
+        <div className="khead">
+          <div><h1>Kitchen</h1><p>Oldest orders first. A chime plays when a new one comes in.</p></div>
+          <nav className="seg" aria-label="Filter orders">
+            {[["active", "To do"], ["delivered", "Delivered"], ["all", "All"]].map(([k, l]) => (
+              <button key={k} aria-pressed={filter === k} onClick={() => setFilter(k)}>{l}</button>
+            ))}
+          </nav>
+        </div>
+        {authed && (
+          <div className="kstats">
+            <span className="kstat"><b>{count("placed")}</b>new</span>
+            <span className="kstat"><b>{count("preparing")}</b>being made</span>
+            <span className="kstat"><b>{count("out")}</b>on the way</span>
+          </div>
+        )}
+        {authed === null && <div className="empty">Loading orders…</div>}
+        {authed && !list.length && <div className="empty">{filter === "active" ? "All caught up. New orders will appear here with a chime." : "Nothing here yet."}</div>}
+        <div className="tickets">
           {list.map((o) => {
             const locked = o.otpLockedUntil && new Date(o.otpLockedUntil) > new Date();
             return (
-              <article className="order" key={o.id}>
-                <div className="order-top"><div><h3>{o.shortId}</h3><div className="oid">{fmtTime(o.createdAt)} · ₹{o.total}</div></div><Pill status={o.status} /></div>
-                <div className="cust">
-                  <span className="label">Customer</span>
-                  <span className="nm">{o.name}</span>
-                  <span className="ph">+91 {o.phone}</span>
-                  <span>{o.address}</span>
-                  <span>{o.pin
-                    ? <><a className="pin-link" href={mapsUrl(o.pin)} target="_blank" rel="noopener noreferrer">Open pinned location ↗</a> <span className="coords">{o.pin.lat.toFixed(5)}, {o.pin.lng.toFixed(5)}</span></>
-                    : <span className="coords">No location pin</span>}</span>
+              <article className={`ticket ${o.status === "placed" ? "new" : ""}`} key={o.id}>
+                <div className="t-top">
+                  <div><div className="t-code">{o.shortId}</div><div className="t-time">Ordered {fmtClock(o.createdAt)}, {ago(o.createdAt)}</div></div>
+                  <Pill status={o.status} />
                 </div>
-                <Chips items={o.items} />
-                <div className="meta">{macros(o.items)}</div>
-                {o.note && <div className="meta"><b>Note:</b> {o.note}</div>}
-                <div className="actions">
-                  {o.status === "placed" && <button className="btn small" disabled={busy[o.id]} onClick={() => move(o, "preparing")}>Start making</button>}
-                  {o.status === "preparing" && <button className="btn small" disabled={busy[o.id]} onClick={() => move(o, "out")}>Hand to delivery</button>}
+                <div className="t-items">
+                  {INGREDIENTS.map((i) => {
+                    const n = o.items?.[i.key] ?? 0; const Icon = ICONS[i.key];
+                    return (
+                      <div className="t-item" key={i.key} style={n === 0 ? { opacity: .4 } : undefined}>
+                        <b>{n}</b>
+                        <span style={{ display: "flex", alignItems: "center", gap: 10 }}><Icon size={28} /><span>{UNIT[i.key](n)}<small>{HINT[i.key]}</small></span></span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {o.note && <div className="t-note"><b>Note:</b> {o.note}</div>}
+                <div className="t-cust">
+                  <span className="label">Deliver to</span>
+                  <span className="nm">{o.name}</span>
+                  <span>+91 {o.phone}</span>
+                  <span>{o.address}</span>
+                  {o.pin
+                    ? <span><a href={mapsUrl(o.pin)} target="_blank" rel="noopener noreferrer">Open pinned location in Maps</a> <span className="coords">{o.pin.lat.toFixed(5)}, {o.pin.lng.toFixed(5)}</span></span>
+                    : <span className="coords">No map pin</span>}
+                </div>
+                <div className="t-action">
+                  {o.status === "placed" && <button className="btn btn-yellow" disabled={busy[o.id]} onClick={() => move(o, "preparing")}>Start making</button>}
+                  {o.status === "preparing" && <button className="btn btn-primary" disabled={busy[o.id]} onClick={() => move(o, "out")}>Hand to delivery</button>}
                   {o.status === "out" && (
-                    <div className="otp-in">
-                      <label className="label" htmlFor={`otp-${o.id}`}>Customer OTP</label>
-                      <input id={`otp-${o.id}`} inputMode="numeric" maxLength={6} placeholder="000000" disabled={locked}
-                        value={otpInput[o.id] || ""} onChange={(e) => setOtpInput((x) => ({ ...x, [o.id]: e.target.value.replace(/\D/g, "").slice(0, 6) }))}
-                        onKeyDown={(e) => { if (e.key === "Enter") deliver(o); }} />
-                      <button className="btn small" disabled={busy[o.id] || locked} onClick={() => deliver(o)}>Confirm delivery</button>
+                    <div className="otp-entry">
+                      <label className="label" htmlFor={`otp-${o.id}`}>Ask the customer for their OTP</label>
+                      <div className="row">
+                        <input id={`otp-${o.id}`} inputMode="numeric" maxLength={6} placeholder="······" disabled={locked} autoComplete="one-time-code"
+                          value={otpInput[o.id] || ""} onChange={(e) => setOtpInput((x) => ({ ...x, [o.id]: e.target.value.replace(/\D/g, "").slice(0, 6) }))}
+                          onKeyDown={(e) => { if (e.key === "Enter") deliver(o); }} />
+                        <button className="btn btn-primary" style={{ width: "auto" }} disabled={busy[o.id] || locked} onClick={() => deliver(o)}>Confirm</button>
+                      </div>
+                      <div className="err">{locked ? `Too many wrong tries. OTP entry unlocks at ${fmtClock(o.otpLockedUntil)}.` : otpErr[o.id] || ""}</div>
                     </div>
                   )}
-                  {o.status === "delivered" && <span className="meta">Delivered {fmtTime(o.deliveredAt)} · OTP verified</span>}
+                  {o.status === "delivered" && <div className="t-done"><CheckIcon />Delivered {fmtTime(o.deliveredAt)}, OTP verified</div>}
                 </div>
-                {o.status === "out" && <div className="err">{locked ? `Too many wrong tries. OTP entry unlocks at ${fmtTime(o.otpLockedUntil)}.` : otpErr[o.id] || ""}</div>}
               </article>
             );
           })}
-        </section>
+        </div>
       </main>
       <Toast msg={toast} />
-    </div>
+    </>
   );
 }

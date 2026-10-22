@@ -5,7 +5,7 @@ import L from "leaflet";
 
 const DEFAULT_CENTER = [12.9716, 77.5946]; // Bengaluru
 
-const pinIcon = L.divIcon({ className: "", html: '<div class="map-pin"></div>', iconSize: [26, 26], iconAnchor: [13, 26] });
+const pinIcon = L.divIcon({ className: "", html: '<div class="map-pin"></div>', iconSize: [30, 30], iconAnchor: [15, 34] });
 
 function ClickToMove({ onPick }) {
   useMapEvents({ click: (e) => onPick({ lat: e.latlng.lat, lng: e.latlng.lng }) });
@@ -49,13 +49,13 @@ export default function MapPicker({ value, onChange }) {
         )}
       </MapContainer>
       <div className="map-bar">
-        <span className="coords">{value ? `${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}` : "Tap the map or use your location to drop a pin"}</span>
+        <span className="coords">{value ? `${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}` : "Tap the map to drop your pin"}</span>
         <span style={{ display: "flex", gap: 6 }}>
-          {value && <button type="button" className="btn small ghost" onClick={() => onChange(null)}>Clear</button>}
-          <button type="button" className="btn small" onClick={useMyLocation} disabled={locating}>{locating ? "Locating…" : "Use my current location"}</button>
+          {value && <button type="button" className="btn btn-ghost btn-sm" onClick={() => onChange(null)}>Clear</button>}
+          <button type="button" className="btn btn-yellow btn-sm" onClick={useMyLocation} disabled={locating}>{locating ? "Locating…" : "Use my current location"}</button>
         </span>
       </div>
-      {msg && <div className="meta" style={{ padding: "0 10px 8px" }}>{msg}</div>}
+      {msg && <div className="map-msg">{msg}</div>}
     </div>
   );
 }

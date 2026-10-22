@@ -2,7 +2,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { INGREDIENTS, NUTRIENTS, DELIVERY_FEE, defaultQty, itemTotal, nutrition, r1 } from "@/lib/menu";
-import { AlertModal, Chips, Header, Pill, Toast, Track, browserNotify, chime, fmtTime, macros, primeAudio } from "@/components/ui";
+import { AlertModal, BellIcon, Chips, CheckIcon, OtpDigits, Pill, Toast, TopBar, Tracker, browserNotify, chime, fmtTime, primeAudio } from "@/components/ui";
+import { ICONS, SandwichArt } from "@/components/art";
 
 const MapPicker = dynamic(() => import("@/components/MapPicker"), { ssr: false, loading: () => <div className="map-box"><div className="map" /></div> });
 
@@ -10,49 +11,57 @@ const LS_ORDERS = "mm_orders", LS_PROFILE = "mm_profile", LS_SEEN = "mm_lastSeen
 const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
-function Sandwich({ qty }) {
-  const layers = []; const slices = qty.bread; const pairs = Math.max(1, Math.floor(slices / 2));
-  let pbLeft = qty.pb, bnLeft = qty.banana;
-  for (let p = 0; p < slices; p++) {
-    layers.push(<div key={"b" + p} className="layer bread" />);
-    if (p < slices - 1 && (p % 2 === 0 || slices % 2)) {
-      const share = Math.max(1, pairs - Math.floor(p / 2));
-      const pbN = Math.ceil(pbLeft / share), bnN = Math.ceil(bnLeft / share);
-      for (let k = 0; k < Math.min(pbN, 3); k++) layers.push(<div key={`p${p}${k}`} className="layer pb" />);
-      for (let k = 0; k < Math.min(bnN, 3); k++) layers.push(<div key={`n${p}${k}`} className="layer banana" />);
-      pbLeft -= pbN; bnLeft -= bnN;
-    }
-  }
-  return <div className="sandwich" aria-hidden="true">{layers}</div>;
+function Receipt({ qty }) {
+  const subtotal = itemTotal(qty);
+  return (
+    <>
+      {INGREDIENTS.map((i) => (
+        <div className="receipt-row" key={i.key}>
+          <span>{i.name} <span className="q">× {qty[i.key]}</span></span><span>₹{qty[i.key] * i.price}</span>
+        </div>
+      ))}
+      <hr className="receipt-rule" />
+      <div className="receipt-row"><span>Item total</span><span>₹{subtotal}</span></div>
+      <div className="receipt-row"><span>Delivery</span><span>₹{DELIVERY_FEE}</span></div>
+      <hr className="receipt-rule" />
+      <div className="receipt-total"><span className="label">To pay</span><strong>₹{subtotal + DELIVERY_FEE}</strong></div>
+      <p className="test-note"><i />Test mode. No payment is taken.</p>
+    </>
+  );
 }
 
-function NutritionPanel({ qty }) {
+function Nutrition({ qty }) {
   const t = nutrition(qty);
-  const pc = t.p * 4, cc = t.c * 4, fc = t.f * 9, all = pc + cc + fc || 1, pct = (x) => Math.round((x / all) * 100);
+  const pc = t.p * 4, cc = t.c * 4, fc = t.f * 9, all = pc + cc + fc || 1;
+  const rows = [["Protein", t.p, pc, "c-p"], ["Carbs", t.c, cc, "c-c"], ["Fat", t.f, fc, "c-f"]];
   return (
-    <section className="panel stack" aria-labelledby="nutHead">
-      <div className="nut-top">
-        <div><h2 id="nutHead">Nutrition</h2><p className="meta" style={{ margin: "2px 0 0" }}>For the whole sandwich, updated as you change amounts</p></div>
-        <div className="kcal-big"><strong>{t.kcal}</strong><span>kcal</span></div>
-      </div>
-      <div className="macro-cards">
-        {NUTRIENTS.filter((n) => n.k !== "kcal").map((n) => <div className="macro" key={n.k}><span className="v">{t[n.k]}<small>{n.u}</small></span><span className="l">{n.label}</span></div>)}
-      </div>
-      <div>
-        <div className="split" aria-hidden="true">
-          <div className="m-p" style={{ width: `${(pc / all) * 100}%` }} /><div className="m-c" style={{ width: `${(cc / all) * 100}%` }} /><div className="m-f" style={{ width: `${(fc / all) * 100}%` }} />
+    <section aria-labelledby="nutHead">
+      <div className="sec-head"><div><h2 id="nutHead">Nutrition</h2><p>For the whole sandwich. Bars show each macro&apos;s share of the calories.</p></div></div>
+      <div className="nut">
+        <div className="kcal"><strong>{t.kcal}</strong><span>kcal</span></div>
+        <div className="macros">
+          {rows.map(([name, g, cal, cls]) => (
+            <div className="macro-row" key={name}>
+              <span>{name}</span>
+              <span className="bar"><i className={cls} style={{ width: `${(cal / all) * 100}%` }} /></span>
+              <span className="v">{g} g</span>
+            </div>
+          ))}
+          <div className="extras"><span>Fibre <b>{t.fib} g</b></span><span>Sugars <b>{t.sug} g</b></span></div>
         </div>
-        <div className="split-legend"><span><i className="m-p" />Protein {pct(pc)}%</span><span><i className="m-c" />Carbs {pct(cc)}%</span><span><i className="m-f" />Fat {pct(fc)}%</span><span>of calories</span></div>
+        <details className="breakdown">
+          <summary>See it ingredient by ingredient</summary>
+          <div className="tbl-wrap">
+            <table className="nut-table">
+              <thead><tr><th>Nutrient</th>{INGREDIENTS.map((i) => <th key={i.key}>{i.name.replace(" slices", "")} ×{qty[i.key]}</th>)}<th className="tot">Total</th></tr></thead>
+              <tbody>{NUTRIENTS.map((n) => (
+                <tr key={n.k}><td>{n.label} ({n.u})</td>{INGREDIENTS.map((i) => { const v = qty[i.key] * i.n[n.k]; return <td key={i.key}>{n.k === "kcal" ? Math.round(v) : r1(v)}</td>; })}<td className="tot">{t[n.k]}</td></tr>
+              ))}</tbody>
+            </table>
+          </div>
+          <p className="hint source">From the labels of The Health Factory Zero Maida bread (27 g slice) and Pintola All Natural Crunchy Unsweetened peanut butter (16 g tablespoon), plus a medium banana (118 g). Values are approximate.</p>
+        </details>
       </div>
-      <div className="tbl-wrap">
-        <table className="nut-table">
-          <thead><tr><th>Per sandwich</th>{INGREDIENTS.map((i) => <th key={i.key}>{i.name.replace(" slices", "")}<small>× {qty[i.key]} {i.key === "banana" ? "" : i.unit}</small></th>)}<th className="tot">Total</th></tr></thead>
-          <tbody>{NUTRIENTS.map((n) => (
-            <tr key={n.k}><td>{n.label} ({n.u})</td>{INGREDIENTS.map((i) => { const v = qty[i.key] * i.n[n.k]; return <td key={i.key}>{n.k === "kcal" ? Math.round(v) : r1(v)}</td>; })}<td className="tot">{t[n.k]}</td></tr>
-          ))}</tbody>
-        </table>
-      </div>
-      <p className="meta" style={{ margin: 0 }}>Based on the labels of The Health Factory Zero Maida bread (whole wheat, 27 g slice) and Pintola All Natural Crunchy Unsweetened peanut butter (16 g tablespoon), plus a medium banana (118 g). Values are approximate.</p>
     </section>
   );
 }
@@ -178,108 +187,136 @@ export default function OrderPage() {
 
   const bell = (
     <div className="bell-wrap">
-      <button className="bell" aria-label="Notifications" aria-expanded={bellOpen} onClick={toggleBell}>
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-2 2v1h18v-1Z" /></svg>
-        {unread > 0 && <span className="count">{unread}</span>}
+      <button className="icon-btn" aria-label={`Notifications${unread ? `, ${unread} new` : ""}`} aria-expanded={bellOpen} onClick={toggleBell}>
+        <BellIcon />{unread > 0 && <span className="badge">{unread}</span>}
       </button>
       {bellOpen && (
-        <div className="notif-panel"><div className="label" style={{ padding: "10px 14px 4px" }}>Notifications</div>
+        <div className="notif-panel"><h3>Updates</h3>
           <ul>{notifs.length ? notifs.slice(0, 30).map((n, k) => (
-            <li key={k} className={`n-${n.kind}${new Date(n.t).getTime() > lastSeen ? " unread" : ""}`}><b>{n.title}</b><span>{n.text}</span><time>{fmtTime(n.t)}</time></li>
-          )) : <li className="none">No notifications yet. Your OTP and delivery updates will appear here.</li>}</ul>
+            <li key={k} className={new Date(n.t).getTime() > lastSeen ? "unread" : ""}><b>{n.title}</b><span>{n.text}</span><time>{fmtTime(n.t)}</time></li>
+          )) : <li className="none">Your OTP and delivery updates will show up here.</li>}</ul>
         </div>
       )}
     </div>
   );
 
-  const subtotal = itemTotal(qty);
+  const total = itemTotal(qty) + DELIVERY_FEE;
+  const kcal = nutrition(qty).kcal;
+  const orderBtn = (
+    <button className="btn btn-primary" onClick={placeOrder} disabled={placing}>
+      {placing ? "Placing your order…" : <>Place order <span className="price">₹{total}</span></>}
+    </button>
+  );
+
   return (
-    <div className="wrap">
-      <Header active="order" right={bell} />
-      <main>
-        <section>
-          <h1>Peanut butter &amp; banana, made fresh.</h1>
-          <p className="lede">Pick how much of each goes in. Your chef starts as soon as you order.</p>
+    <>
+      <TopBar active="order" right={bell} />
+      <main className="page">
+        <section className="hero">
+          <h1>Build your peanut butter banana sandwich.</h1>
+          <p>Choose how much bread, peanut butter and banana goes in. Your chef makes it fresh and it&apos;s handed over only when you share your OTP at the door.</p>
         </section>
 
-        <section className="panel">
-          <div className="builder">
-            <Sandwich qty={qty} />
-            <div className="ingredients">
-              {INGREDIENTS.map((i) => (
-                <div className="ing" key={i.key}>
-                  <div className={`swatch ${i.key}`} />
+        <aside className="side" aria-label="Your sandwich">
+          <div className="stage">
+            <SandwichArt qty={qty} />
+            <div className="stage-cap"><span><b>{kcal}</b>kcal</span><span><b>{r1(nutrition(qty).p)}</b>g protein</span></div>
+          </div>
+          <div className="receipt-wrap">
+            <div className="receipt">
+              <Receipt qty={qty} />
+              <div style={{ marginTop: 18 }}>{orderBtn}</div>
+              <div className="err" role="alert" style={{ marginTop: 10 }}>{err}</div>
+            </div>
+          </div>
+        </aside>
+
+        <section aria-labelledby="buildHead">
+          <div className="sec-head"><div><h2 id="buildHead">What goes in</h2><p>Tap + and − and watch the sandwich change.</p></div></div>
+          <div className="ings">
+            {INGREDIENTS.map((i) => {
+              const Icon = ICONS[i.key];
+              return (
+                <div className={`ing ${qty[i.key] > 0 ? "on" : ""}`} key={i.key}>
+                  <div className="ing-art"><Icon size={46} /></div>
                   <div>
                     <div className="ing-name">{i.name}</div>
                     {i.brand && <div className="ing-brand">{i.brand}</div>}
-                    <div className="ing-unit">₹{i.price} per {i.per}</div>
-                    <div className="ing-nut"><b>{i.n.kcal}</b> kcal · P {i.n.p}g · C {i.n.c}g · F {i.n.f}g</div>
+                    <div className="ing-facts"><span><b>₹{i.price}</b> per {i.per}</span><span>{i.n.kcal} kcal</span><span>{i.n.p} g protein</span></div>
                   </div>
                   <div className="stepper">
                     <button aria-label={`Less ${i.name}`} disabled={qty[i.key] <= i.min} onClick={() => step(i.key, -1)}>−</button>
                     <output aria-live="polite">{qty[i.key]}</output>
-                    <button aria-label={`More ${i.name}`} disabled={qty[i.key] >= i.max} onClick={() => step(i.key, 1)}>+</button>
+                    <button className="plus" aria-label={`More ${i.name}`} disabled={qty[i.key] >= i.max} onClick={() => step(i.key, 1)}>+</button>
                   </div>
                 </div>
-              ))}
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="mobile-only" aria-label="Bill">
+          <div className="receipt"><Receipt qty={qty} /></div>
+        </section>
+
+        <Nutrition qty={qty} />
+
+        <section aria-labelledby="detailsHead">
+          <div className="sec-head"><div><h2 id="detailsHead">Where should it go?</h2><p>Your chef sees these details. They&apos;re saved on this device for next time.</p></div></div>
+          <div className="form">
+            <div className="row2">
+              <div className="field"><label htmlFor="c-name">Full name <span className="req">*</span></label>
+                <input id="c-name" required autoComplete="name" placeholder="Anuradha Belgaonkar" value={form.name} onChange={setField("name")} aria-invalid={invalid.name || undefined} /></div>
+              <div className="field"><label htmlFor="c-phone">Mobile number <span className="req">*</span></label>
+                <div className="phone"><span>+91</span><input id="c-phone" required inputMode="numeric" maxLength={10} autoComplete="tel-national" placeholder="98765 43210" value={form.phone} onChange={setField("phone")} aria-invalid={invalid.phone || undefined} /></div></div>
             </div>
+            <div className="field"><label htmlFor="c-address">Delivery address <span className="req">*</span></label>
+              <textarea id="c-address" required autoComplete="street-address" placeholder="Flat, building, street, area, city, PIN" value={form.address} onChange={setField("address")} aria-invalid={invalid.address || undefined} /></div>
+            <div className="field"><span className="flabel">Pin your door <span className="opt">(recommended)</span></span>
+              <MapPicker value={pin} onChange={setPin} />
+              <p className="hint">Tap the map or use your current location, then drag the pin onto your building.</p>
+            </div>
+            <div className="field"><label htmlFor="c-note">Note for the chef <span className="opt">(optional)</span></label>
+              <input id="c-note" placeholder="Toast the bread lightly, cut diagonally" maxLength={200} value={form.note} onChange={setField("note")} /></div>
+            <div className="mobile-only"><div className="err" role="alert">{err}</div></div>
           </div>
-          <div className="bill">
-            {INGREDIENTS.map((i) => <div key={i.key}><span>{i.name} <span className="q">{qty[i.key]} × ₹{i.price}</span></span><span>₹{qty[i.key] * i.price}</span></div>)}
-            <div className="sub"><span>Item total</span><span>₹{subtotal}</span></div>
-            <div><span>Delivery charge</span><span>₹{DELIVERY_FEE}</span></div>
-          </div>
-          <div className="total"><span className="label">Order charge</span><strong>₹{subtotal + DELIVERY_FEE}</strong></div>
-          <p className="meta" style={{ margin: "6px 0 0" }}>Test mode: this shows what you&apos;d pay. No payment is taken.</p>
         </section>
 
-        <NutritionPanel qty={qty} />
-
-        <section className="panel stack">
-          <h2>Your details</h2>
-          <p className="meta" style={{ margin: "-8px 0 0" }}>Shared with your chef so they know who it&apos;s for and where to send it. Saved on this device for next time. Fields marked <span className="req">*</span> are required.</p>
-          <div className="row2">
-            <div className="field"><label htmlFor="c-name">Full name <span className="req" aria-hidden="true">*</span></label>
-              <input id="c-name" required autoComplete="name" placeholder="Anu Belgaonkar" value={form.name} onChange={setField("name")} aria-invalid={invalid.name || undefined} /></div>
-            <div className="field"><label htmlFor="c-phone">Phone number <span className="req" aria-hidden="true">*</span></label>
-              <div className="phone"><span>+91</span><input id="c-phone" required inputMode="numeric" maxLength={10} autoComplete="tel-national" placeholder="98765 43210" value={form.phone} onChange={setField("phone")} aria-invalid={invalid.phone || undefined} /></div></div>
-          </div>
-          <div className="field"><label htmlFor="c-address">Delivery address <span className="req" aria-hidden="true">*</span></label>
-            <textarea id="c-address" required autoComplete="street-address" placeholder="Flat, building, street, area, city, PIN" value={form.address} onChange={setField("address")} aria-invalid={invalid.address || undefined} /></div>
-          <div className="field"><span className="label" style={{ fontSize: 13, textTransform: "none", letterSpacing: 0, color: "var(--ink)", fontWeight: 600 }}>Exact location pin <span className="opt">(recommended)</span></span>
-            <MapPicker value={pin} onChange={setPin} />
-            <p className="meta" style={{ margin: 0 }}>Tap the map, drag the pin onto your building, or use your current location. The delivery person uses it to find your door.</p>
-          </div>
-          <div className="field"><label htmlFor="c-note">Note for the chef (optional)</label>
-            <input id="c-note" placeholder="Toast the bread lightly, cut diagonally" maxLength={200} value={form.note} onChange={setField("note")} /></div>
-          <div className="err" role="alert">{err}</div>
-          <button className="btn primary" onClick={placeOrder} disabled={placing}>{placing ? "Placing order…" : "Place order"}</button>
-        </section>
-
-        <section>
-          <h2>My orders</h2>
-          <div className="stack" style={{ marginTop: 12 }}>
-            {!orders.length && <div className="empty">Your orders will show here with live status and the delivery OTP.</div>}
+        <section aria-labelledby="ordersHead">
+          <div className="sec-head"><div><h2 id="ordersHead">Your orders</h2><p>Live status and your delivery OTP.</p></div></div>
+          <div className="orders">
+            {!orders.length && <div className="empty">No orders yet. Build your sandwich above and place your first one.</div>}
             {orders.map((o) => {
               const otp = o.otp || prev.current?.[o.id]?.otp;
               return (
                 <article className="order" key={o.id}>
-                  <div className="order-top"><div><h3>{o.shortId}</h3><div className="oid">{fmtTime(o.createdAt)} · ₹{o.total}</div></div><Pill status={o.status} /></div>
+                  <div className="order-top">
+                    <div><h3>Order {o.shortId}</h3><div className="order-sub">{fmtTime(o.createdAt)}</div></div>
+                    <Pill status={o.status} />
+                  </div>
+                  <Tracker status={o.status} />
                   <Chips items={o.items} />
-                  <Track status={o.status} />
-                  <div className="meta">{macros(o.items)}</div>
-                  <div className="meta">Items ₹{o.subtotal} + delivery ₹{o.deliveryFee} = <b>₹{o.total}</b> · test mode, not charged</div>
+                  <div className="order-meta">
+                    <span>Total <b>₹{o.total}</b>, not charged in test mode</span>
+                    <span><b>{nutrition(o.items).kcal}</b> kcal</span>
+                    <span><b>{nutrition(o.items).p} g</b> protein</span>
+                  </div>
                   {o.status === "delivered"
-                    ? <div className="meta">Delivered {fmtTime(o.deliveredAt)} · OTP verified. Enjoy!</div>
-                    : <div className="otp"><div><div className="label">Delivery OTP</div><small>Only you can see this. Share it only when the delivery person is at your door.</small></div><div className="otp-code">{otp || "••••••"}</div></div>}
+                    ? <div className="delivered-note"><CheckIcon />Delivered at {new Date(o.deliveredAt).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })}. OTP verified. Enjoy!</div>
+                    : <div className="otp"><span className="label">Your delivery OTP</span><OtpDigits code={otp} /><p>Only you can see this. Read it out only when the delivery person is at your door.</p></div>}
                 </article>
               );
             })}
           </div>
         </section>
       </main>
+
+      <div className="order-bar">
+        <div className="sum"><strong>₹{total}</strong><span>{kcal} kcal, incl. ₹{DELIVERY_FEE} delivery</span></div>
+        <button className="btn btn-primary" onClick={placeOrder} disabled={placing}>{placing ? "Placing…" : "Place order"}</button>
+      </div>
       <Toast msg={toast} />
       <AlertModal alert={alert} onClose={() => setAlert(null)} />
-    </div>
+    </>
   );
 }
