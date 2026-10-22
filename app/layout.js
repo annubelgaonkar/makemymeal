@@ -6,7 +6,7 @@ export const metadata = {
   description: "Peanut butter & banana sandwiches, made fresh to your order.",
 };
 
-export const viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#F2C230" };
+export const viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#FFFFFF" };
 
 export default function RootLayout({ children }) {
   return (
