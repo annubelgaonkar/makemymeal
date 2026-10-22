@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { INGREDIENTS, STATUSES, nutrition } from "@/lib/menu";
 import { LogoMark } from "@/components/art";
 
@@ -54,6 +55,25 @@ export function OtpDigits({ code }) {
   return <div className="otp-digits" aria-label={code ? `OTP ${code.split("").join(" ")}` : "OTP hidden"}>{d.map((c, i) => <span key={i}>{c === "-" ? "•" : c}</span>)}</div>;
 }
 
+
+export function ThemeToggle() {
+  const [dark, setDark] = useState(false);
+  useEffect(() => { setDark(document.documentElement.dataset.theme === "dark"); }, []);
+  function flip() {
+    const next = dark ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem("mm_theme", next); } catch {}
+    setDark(!dark);
+  }
+  return (
+    <button className="icon-btn theme-btn" onClick={flip} aria-label={dark ? "Switch to white theme" : "Switch to black theme"} title={dark ? "White theme" : "Black theme"}>
+      {dark
+        ? <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor" /><g stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" /></g></svg>
+        : <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a.6.6 0 0 0-.8-.7A9.5 9.5 0 1 0 21.2 15.4a.6.6 0 0 0-.7-.8Z" /></svg>}
+    </button>
+  );
+}
+
 export function TopBar({ active, right }) {
   return (
     <div className="topbar">
@@ -63,6 +83,7 @@ export function TopBar({ active, right }) {
           <span className="brand-name">makemymeal</span>
         </Link>
         <div className="top-actions">
+          <ThemeToggle />
           {right}
           <nav className="seg" aria-label="Sections">
             <Link href="/" aria-current={active === "order" ? "page" : undefined}>Order</Link>
