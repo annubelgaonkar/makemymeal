@@ -2,7 +2,7 @@ import "./globals.css";
 import "leaflet/dist/leaflet.css";
 
 export const metadata = {
-  title: "makemymeal.com",
+  title: "makemymeal",
   description: "Peanut butter & banana sandwiches, made fresh to your order.",
 };
 

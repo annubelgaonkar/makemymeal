@@ -43,7 +43,7 @@ export default function KitchenPage() {
   useEffect(() => {
     load();
     const t = setInterval(load, 5000);
-    const reset = () => { document.title = "Kitchen · makemymeal.com"; };
+    const reset = () => { document.title = "Kitchen | makemymeal"; };
     reset(); window.addEventListener("focus", reset); document.addEventListener("click", reset);
     return () => { clearInterval(t); window.removeEventListener("focus", reset); document.removeEventListener("click", reset); };
   }, [load]);
@@ -117,9 +117,9 @@ export default function KitchenPage() {
         </div>
         {authed && (
           <div className="kstats">
-            <span className="kstat"><b>{count("placed")}</b>new</span>
-            <span className="kstat"><b>{count("preparing")}</b>being made</span>
-            <span className="kstat"><b>{count("out")}</b>on the way</span>
+            <span className="kstat k-new"><b>{count("placed")}</b>new</span>
+            <span className="kstat k-make"><b>{count("preparing")}</b>being made</span>
+            <span className="kstat k-out"><b>{count("out")}</b>on the way</span>
           </div>
         )}
         {authed === null && <div className="empty">Loading orders…</div>}

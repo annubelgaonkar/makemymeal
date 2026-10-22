@@ -232,17 +232,23 @@ export default function OrderPage() {
         </aside>
 
         <section aria-labelledby="buildHead">
-          <div className="sec-head"><div><h2 id="buildHead">What goes in</h2><p>Tap + and − and watch the sandwich change.</p></div></div>
+          <div className="sec-head"><div><h2 id="buildHead">What goes in</h2><p>Nutrition shown per slice, tablespoon or banana. Tap + and − to build yours.</p></div></div>
           <div className="ings">
             {INGREDIENTS.map((i) => {
               const Icon = ICONS[i.key];
               return (
-                <div className={`ing ${qty[i.key] > 0 ? "on" : ""}`} key={i.key}>
+                <div className={`ing ${i.key} ${qty[i.key] > 0 ? "" : "off"}`} key={i.key}>
                   <div className="ing-art"><Icon size={46} /></div>
                   <div>
                     <div className="ing-name">{i.name}</div>
                     {i.brand && <div className="ing-brand">{i.brand}</div>}
-                    <div className="ing-facts"><span><b>₹{i.price}</b> per {i.per}</span><span>{i.n.kcal} kcal</span><span>{i.n.p} g protein</span></div>
+                    <div className="ing-price"><b>₹{i.price}</b> per {i.per}</div>
+                    <div className="ing-macros" aria-label={`Per ${i.per}: ${i.n.kcal} kcal, protein ${i.n.p} g, carbs ${i.n.c} g, fat ${i.n.f} g`}>
+                      <span className="k"><b>{i.n.kcal}</b> kcal</span>
+                      <span><i className="c-p" />Protein <b>{i.n.p} g</b></span>
+                      <span><i className="c-c" />Carbs <b>{i.n.c} g</b></span>
+                      <span><i className="c-f" />Fat <b>{i.n.f} g</b></span>
+                    </div>
                   </div>
                   <div className="stepper">
                     <button aria-label={`Less ${i.name}`} disabled={qty[i.key] <= i.min} onClick={() => step(i.key, -1)}>−</button>

@@ -1,4 +1,4 @@
-# makemymeal.com
+# makemymeal
 
 Order a peanut butter & banana sandwich with your own amounts of bread, peanut butter and banana. The chef gets the order live, and the delivery is confirmed with a one-time password (OTP) that only the customer has.
 

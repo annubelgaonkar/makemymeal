@@ -58,9 +58,9 @@ export function TopBar({ active, right }) {
   return (
     <div className="topbar">
       <div className="topbar-in">
-        <Link href="/" className="brand" aria-label="makemymeal.com home">
+        <Link href="/" className="brand" aria-label="makemymeal home">
           <LogoMark size={32} />
-          <span className="brand-name">makemymeal<span>.com</span></span>
+          <span className="brand-name">makemymeal</span>
         </Link>
         <div className="top-actions">
           {right}
