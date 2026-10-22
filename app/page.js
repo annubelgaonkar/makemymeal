@@ -59,7 +59,7 @@ function Nutrition({ qty }) {
               ))}</tbody>
             </table>
           </div>
-          <p className="hint source">From the labels of The Health Factory Zero Maida bread (27 g slice) and Pintola All Natural Crunchy Unsweetened peanut butter (16 g tablespoon), plus a medium banana (118 g). Values are approximate.</p>
+          <p className="hint source">Per 27 g bread slice, 16 g tablespoon of peanut butter and 118 g banana. Values are approximate.</p>
         </details>
       </div>
     </section>
@@ -241,7 +241,6 @@ export default function OrderPage() {
                   <div className="ing-art"><Icon size={46} /></div>
                   <div>
                     <div className="ing-name">{i.name}</div>
-                    {i.brand && <div className="ing-brand">{i.brand}</div>}
                     <div className="ing-price"><b>₹{i.price}</b> per {i.per}</div>
                     <div className="ing-macros" aria-label={`Per ${i.per}: ${i.n.kcal} kcal, protein ${i.n.p} g, carbs ${i.n.c} g, fat ${i.n.f} g`}>
                       <span className="k"><b>{i.n.kcal}</b> kcal</span>

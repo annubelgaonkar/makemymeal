@@ -128,7 +128,6 @@ p{margin:0}
 .ing .stepper button.plus:hover:not(:disabled){filter:brightness(1.07)}
 .ing-art{width:64px;height:64px;border-radius:16px;background:var(--paper);display:grid;place-items:center}
 .ing-name{font-weight:700;font-size:17px;line-height:1.25}
-.ing-brand{font-size:13px;color:var(--peanut);font-weight:600}
 .ing-price{font-size:14px;color:var(--ink-2);margin-top:2px}
 .ing-price b{color:var(--ink)}
 .ing-macros{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}

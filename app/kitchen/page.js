@@ -5,7 +5,7 @@ import { CheckIcon, Pill, Toast, TopBar, ago, chime, fmtClock, fmtTime, mapsUrl,
 import { ICONS, LogoMark } from "@/components/art";
 
 const UNIT = { bread: (n) => (n === 1 ? "slice of bread" : "slices of bread"), pb: () => "tbsp peanut butter", banana: (n) => (n === 1 ? "banana" : "bananas") };
-const HINT = { bread: "Zero Maida", pb: "Pintola crunchy", banana: "medium, sliced" };
+const HINT = { bread: "", pb: "crunchy, unsweetened", banana: "medium, sliced" };
 
 export default function KitchenPage() {
   const [authed, setAuthed] = useState(null); // null = checking
@@ -139,7 +139,7 @@ export default function KitchenPage() {
                     return (
                       <div className="t-item" key={i.key} style={n === 0 ? { opacity: .4 } : undefined}>
                         <b>{n}</b>
-                        <span style={{ display: "flex", alignItems: "center", gap: 10 }}><Icon size={28} /><span>{UNIT[i.key](n)}<small>{HINT[i.key]}</small></span></span>
+                        <span style={{ display: "flex", alignItems: "center", gap: 10 }}><Icon size={28} /><span>{UNIT[i.key](n)}{HINT[i.key] && <small>{HINT[i.key]}</small>}</span></span>
                       </div>
                     );
                   })}
