@@ -4,8 +4,9 @@ import { INGREDIENTS } from "@/lib/menu";
 import { CheckIcon, Pill, Toast, TopBar, ago, chime, fmtClock, fmtTime, mapsUrl, primeAudio } from "@/components/ui";
 import { ICONS, LogoMark } from "@/components/art";
 
-const UNIT = { bread: (n) => (n === 1 ? "slice of bread" : "slices of bread"), pb: () => "tbsp peanut butter", banana: (n) => (n === 1 ? "banana" : "bananas"), egg: (n) => (n === 1 ? "scrambled egg" : "scrambled eggs") };
+const UNIT = { bread: (n) => (n === 1 ? "slice of bread" : "slices of bread"), pb: () => "tbsp peanut butter", banana: (n) => (n === 1 ? "banana" : "bananas"), egg: (n, it) => `${it?.eggStyle === "boiled" ? "boiled" : "scrambled"} ${n === 1 ? "egg" : "eggs"}` };
 const HINT = { bread: "", pb: "crunchy, unsweetened", banana: "medium, sliced", egg: "large" };
+const EGG_HINT = { boiled: "large, hard-boiled, sliced", scrambled: "large" };
 
 export default function KitchenPage() {
   const [authed, setAuthed] = useState(null); // null = checking
@@ -139,7 +140,7 @@ export default function KitchenPage() {
                     return (
                       <div className="t-item" key={i.key} style={n === 0 ? { opacity: .4 } : undefined}>
                         <b>{n}</b>
-                        <span style={{ display: "flex", alignItems: "center", gap: 10 }}><Icon size={28} /><span>{UNIT[i.key](n)}{HINT[i.key] && <small>{HINT[i.key]}</small>}</span></span>
+                        <span style={{ display: "flex", alignItems: "center", gap: 10 }}><Icon size={28} style={o.items?.eggStyle} /><span>{UNIT[i.key](n, o.items)}{(i.key === "egg" ? EGG_HINT[o.items?.eggStyle === "boiled" ? "boiled" : "scrambled"] : HINT[i.key]) && <small>{i.key === "egg" ? EGG_HINT[o.items?.eggStyle === "boiled" ? "boiled" : "scrambled"] : HINT[i.key]}</small>}</span></span>
                       </div>
                     );
                   })}

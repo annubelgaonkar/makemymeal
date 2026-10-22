@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { INGREDIENTS, NUTRIENTS, DELIVERY_FEE, defaultQty, itemTotal, nutrition, r1 } from "@/lib/menu";
+import { INGREDIENTS, NUTRIENTS, DELIVERY_FEE, defaultQty, itemTotal, nutrition, r1, ingInfo } from "@/lib/menu";
 import { AlertModal, BellIcon, Chips, CheckIcon, OtpDigits, Pill, Toast, TopBar, Tracker, browserNotify, chime, fmtTime, primeAudio } from "@/components/ui";
 import { ICONS, SandwichArt } from "@/components/art";
 
@@ -17,7 +17,7 @@ function Receipt({ qty }) {
     <>
       {INGREDIENTS.map((i) => (
         <div className="receipt-row" key={i.key}>
-          <span>{i.name} <span className="q">× {qty[i.key]}</span></span><span>₹{qty[i.key] * i.price}</span>
+          <span>{i.styles ? `${ingInfo(i, qty).styleLabel} egg` : i.name} <span className="q">× {qty[i.key]}</span></span><span>₹{qty[i.key] * i.price}</span>
         </div>
       ))}
       <hr className="receipt-rule" />
@@ -55,11 +55,11 @@ function Nutrition({ qty }) {
             <table className="nut-table">
               <thead><tr><th>Nutrient</th>{INGREDIENTS.map((i) => <th key={i.key}>{i.name.replace(" slices", "")} ×{qty[i.key]}</th>)}<th className="tot">Total</th></tr></thead>
               <tbody>{NUTRIENTS.map((n) => (
-                <tr key={n.k}><td>{n.label} ({n.u})</td>{INGREDIENTS.map((i) => { const v = qty[i.key] * i.n[n.k]; return <td key={i.key}>{n.k === "kcal" ? Math.round(v) : r1(v)}</td>; })}<td className="tot">{t[n.k]}</td></tr>
+                <tr key={n.k}><td>{n.label} ({n.u})</td>{INGREDIENTS.map((i) => { const v = qty[i.key] * ingInfo(i, qty).n[n.k]; return <td key={i.key}>{n.k === "kcal" ? Math.round(v) : r1(v)}</td>; })}<td className="tot">{t[n.k]}</td></tr>
               ))}</tbody>
             </table>
           </div>
-          <p className="hint source">Per 27 g bread slice, 16 g tablespoon of peanut butter, 118 g banana and 61 g scrambled egg. Values are approximate.</p>
+          <p className="hint source">Per 27 g bread slice, 16 g tablespoon of peanut butter, 118 g banana and a large egg (61 g scrambled or 50 g boiled). Values are approximate.</p>
         </details>
       </div>
     </section>
@@ -214,7 +214,7 @@ export default function OrderPage() {
       <main className="page">
         <section className="hero">
           <h1>Build your sandwich.</h1>
-          <p>Choose how much bread, peanut butter, banana and scrambled egg goes in. Your chef makes it fresh and it&apos;s handed over only when you share your OTP at the door.</p>
+          <p>Choose how much bread, peanut butter, banana and egg goes in, and how you like your egg. Your chef makes it fresh and it&apos;s handed over only when you share your OTP at the door.</p>
         </section>
 
         <aside className="side" aria-label="Your sandwich">
@@ -235,18 +235,25 @@ export default function OrderPage() {
           <div className="sec-head"><div><h2 id="buildHead">What goes in</h2><p>Nutrition shown per slice, tablespoon, banana or egg. Tap + and − to build yours.</p></div></div>
           <div className="ings">
             {INGREDIENTS.map((i) => {
-              const Icon = ICONS[i.key];
+              const Icon = ICONS[i.key]; const info = ingInfo(i, qty);
               return (
                 <div className={`ing ${i.key} ${qty[i.key] > 0 ? "" : "off"}`} key={i.key}>
-                  <div className="ing-art"><Icon size={46} /></div>
+                  <div className="ing-art"><Icon size={46} style={qty.eggStyle} /></div>
                   <div>
                     <div className="ing-name">{i.name}</div>
-                    <div className="ing-price"><b>₹{i.price}</b> per {i.per}</div>
-                    <div className="ing-macros" aria-label={`Per ${i.per}: ${i.n.kcal} kcal, protein ${i.n.p} g, carbs ${i.n.c} g, fat ${i.n.f} g`}>
-                      <span className="k"><b>{i.n.kcal}</b> kcal</span>
-                      <span><i className="c-p" />Protein <b>{i.n.p} g</b></span>
-                      <span><i className="c-c" />Carbs <b>{i.n.c} g</b></span>
-                      <span><i className="c-f" />Fat <b>{i.n.f} g</b></span>
+                    <div className="ing-price"><b>₹{i.price}</b> per {info.per}</div>
+                    {i.styles && (
+                      <div className="style-pick" role="radiogroup" aria-label="How should the egg be cooked?">
+                        {Object.entries(i.styles).map(([k, st]) => (
+                          <button key={k} type="button" role="radio" aria-checked={qty.eggStyle === k} onClick={() => setQty((q) => ({ ...q, eggStyle: k }))}>{st.label}</button>
+                        ))}
+                      </div>
+                    )}
+                    <div className="ing-macros" aria-label={`Per ${info.per}: ${info.n.kcal} kcal, protein ${info.n.p} g, carbs ${info.n.c} g, fat ${info.n.f} g`}>
+                      <span className="k"><b>{info.n.kcal}</b> kcal</span>
+                      <span><i className="c-p" />Protein <b>{info.n.p} g</b></span>
+                      <span><i className="c-c" />Carbs <b>{info.n.c} g</b></span>
+                      <span><i className="c-f" />Fat <b>{info.n.f} g</b></span>
                     </div>
                   </div>
                   <div className="stepper">

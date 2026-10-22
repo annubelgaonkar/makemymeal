@@ -33,7 +33,17 @@ export function BananaIcon({ size = 44 }) {
   );
 }
 
-export function EggIcon({ size = 44 }) {
+export function EggIcon({ size = 44, style }) {
+  if (style === "boiled") {
+    return (
+      <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
+        <ellipse cx="24" cy="25" rx="15" ry="18" fill="#FFFFFF" stroke="#E6DED2" strokeWidth="1.5" />
+        <circle cx="24" cy="27" r="8" fill="#FFC93C" />
+        <circle cx="24" cy="27" r="8" fill="none" stroke="#F2A900" strokeWidth="1.5" />
+        <ellipse cx="21" cy="24" rx="3" ry="1.6" fill="#FFE38A" />
+      </svg>
+    );
+  }
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
       <ellipse cx="24" cy="33" rx="19" ry="8" fill="#E9E2D8" />
@@ -78,7 +88,7 @@ export function buildLayers(q) {
       pbLeft -= pb; bnLeft -= bn; egLeft -= eg;
       for (let k = 0; k < Math.min(pb, 2); k++) layers.push({ t: "pb", amt: pb });
       if (bn > 0) layers.push({ t: "banana", amt: bn });
-      if (eg > 0) layers.push({ t: "egg", amt: eg });
+      if (eg > 0) layers.push({ t: "egg", amt: eg, style: q.eggStyle });
     }
   }
   return layers;
@@ -135,6 +145,26 @@ function Coins({ y, amt }) {
   );
 }
 
+function BoiledSlices({ y, amt }) {
+  // rounds of sliced hard-boiled egg: white ring, yolk centre
+  const n = Math.min(3 + amt * 2, 9);
+  const step = (W - 28) / (n - 1);
+  return (
+    <g transform={`translate(0 ${y})`}>
+      {Array.from({ length: n }, (_, k) => {
+        const cx = 14 + k * step, ry = EGG_H / 2;
+        return (
+          <g key={k}>
+            <ellipse cx={cx} cy={ry + 0.5} rx={Math.min(21, step / 2 + 7)} ry={ry} fill="#FFFFFF" stroke="#E2D9CC" strokeWidth="1.5" />
+            <ellipse cx={cx} cy={ry + 0.5} rx="8" ry={ry - 5} fill="#FFC93C" />
+            <ellipse cx={cx - 2} cy={ry - 1} rx="3" ry="1.6" fill="#FFE38A" />
+          </g>
+        );
+      })}
+    </g>
+  );
+}
+
 function Scramble({ y, amt }) {
   // fluffy curds: overlapping blobs, more eggs = fuller layer
   const n = Math.min(6 + amt * 3, 16);
@@ -164,12 +194,12 @@ export function SandwichArt({ qty, className }) {
     const h = { bread: BREAD_H, pb: PB_H, banana: BANANA_H, egg: EGG_H }[l.t];
     y -= H[l.t];
     const yy = y - (h - H[l.t]);
-    const el = l.t === "bread" ? <Slice y={yy} top={l.top} /> : l.t === "pb" ? <Spread y={yy} /> : l.t === "egg" ? <Scramble y={yy} amt={l.amt} /> : <Coins y={yy} amt={l.amt} />;
+    const el = l.t === "bread" ? <Slice y={yy} top={l.top} /> : l.t === "pb" ? <Spread y={yy} /> : l.t === "egg" ? (l.style === "boiled" ? <BoiledSlices y={yy} amt={l.amt} /> : <Scramble y={yy} amt={l.amt} />) : <Coins y={yy} amt={l.amt} />;
     return <g key={`${i}-${l.t}`} className="layer-in" style={{ animationDelay: `${Math.min(i, 3) * 20}ms` }}>{el}</g>;
   });
   // draw bottom first; later items (higher) paint over lower ones
   return (
-    <svg className={className} viewBox={`-20 0 ${W + 40} ${vbH}`} role="img" aria-label={`Sandwich with ${qty.bread} bread slices, ${qty.pb} tablespoons of peanut butter, ${qty.banana} banana and ${qty.egg || 0} scrambled egg`}>
+    <svg className={className} viewBox={`-20 0 ${W + 40} ${vbH}`} role="img" aria-label={`Sandwich with ${qty.bread} bread slices, ${qty.pb} tablespoons of peanut butter, ${qty.banana} banana and ${qty.egg || 0} ${qty.eggStyle === "boiled" ? "boiled" : "scrambled"} egg`}>
       <ellipse cx={W / 2} cy={vbH - pad - 17} rx={W / 2 - 4} ry="8" fill="#24170E" opacity=".14" />
       {items}
     </svg>

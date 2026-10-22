@@ -29,7 +29,7 @@ export async function POST(req) {
   }
 
   const items = cleanItems(body.items);
-  if (!items) return bad("Check the ingredient amounts. Add peanut butter or banana.");
+  if (!items) return bad("Check the ingredient amounts. Add peanut butter, banana or egg.");
 
   // Simple abuse limit: at most 5 orders per phone number per hour.
   const recent = await query("SELECT count(*)::int AS n FROM orders WHERE phone = $1 AND created_at > now() - interval '1 hour'", [phone]);

@@ -28,7 +28,7 @@ export function Chips({ items }) {
     <div className="chips">
       {INGREDIENTS.map((i) => {
         const n = items?.[i.key] ?? 0;
-        const label = { pb: "tbsp peanut butter", banana: n === 1 ? "banana" : "bananas", egg: n === 1 ? "scrambled egg" : "scrambled eggs", bread: n === 1 ? "slice of bread" : "slices of bread" }[i.key];
+        const label = { pb: "tbsp peanut butter", banana: n === 1 ? "banana" : "bananas", egg: `${items?.eggStyle === "boiled" ? "boiled" : "scrambled"} ${n === 1 ? "egg" : "eggs"}`, bread: n === 1 ? "slice of bread" : "slices of bread" }[i.key];
         return <span className="chip" key={i.key}><b>{n}</b>{label}</span>;
       })}
     </div>
