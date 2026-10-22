@@ -80,8 +80,8 @@ p{margin:0}
 .hero p{margin-top:14px;font-size:18px;color:var(--ink-2);max-width:34em}
 
 /* ---------- sandwich stage ---------- */
-.stage{position:relative;border-radius:var(--r-lg);overflow:hidden;background:var(--pb-c);padding:28px 24px 22px;display:grid;justify-items:center;gap:10px}
-.stage::before{content:"";position:absolute;left:50%;top:50%;width:min(240px,66%);aspect-ratio:1;transform:translate(-50%,-62%);border-radius:50%;background:var(--banana);box-shadow:0 0 0 14px rgba(255,255,255,.14)}
+.stage{position:relative;border-radius:var(--r-lg);overflow:hidden;background:var(--toast);padding:28px 24px 22px;display:grid;justify-items:center;gap:10px}
+.stage::before{content:"";position:absolute;left:50%;top:50%;width:min(270px,74%);aspect-ratio:1;transform:translate(-50%,-55%);border-radius:50%;background:radial-gradient(circle at 50% 50%,#FFFFFF 0 62%,#F4F1EC 63% 66%,#FFFFFF 67%);box-shadow:0 18px 40px -14px rgba(138,79,34,.35),0 0 0 1px rgba(138,79,34,.08)}
 .stage svg{position:relative;width:100%;max-width:300px;height:auto;max-height:300px}
 .stage-cap{position:relative;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;font-size:14px;font-weight:600;color:var(--ink)}
 .stage-cap span{background:var(--paper);padding:6px 12px;border-radius:999px}
