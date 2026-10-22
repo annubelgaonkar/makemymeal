@@ -33,7 +33,19 @@ export function BananaIcon({ size = 44 }) {
   );
 }
 
-export const ICONS = { bread: BreadIcon, pb: JarIcon, banana: BananaIcon };
+export function EggIcon({ size = 44 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
+      <ellipse cx="24" cy="33" rx="19" ry="8" fill="#E9E2D8" />
+      <ellipse cx="24" cy="31.5" rx="17" ry="6.5" fill="#FFFFFF" />
+      <path d="M10 30c1-6 6-9 10-8 2-5 9-6 12-1 4-1 8 2 7 7 2 2 0 5-3 5H13c-3 0-5-1-3-3Z" fill="#FFC93C" />
+      <path d="M15 27c2-2 4-2 6-1M25 24c2-1 4-1 5 1M31 29c2-1 4 0 5 1" stroke="#F2A900" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+      <circle cx="19" cy="30" r="1" fill="#2F7A3A" /><circle cx="29" cy="27" r="1" fill="#2F7A3A" />
+    </svg>
+  );
+}
+
+export const ICONS = { bread: BreadIcon, pb: JarIcon, banana: BananaIcon, egg: EggIcon };
 
 export function LogoMark({ size = 30 }) {
   return (
@@ -50,22 +62,23 @@ export function LogoMark({ size = 30 }) {
 /* ---------- live sandwich ---------- */
 
 const W = 220;           // drawing width of a slice
-const BREAD_H = 42, PB_H = 14, BANANA_H = 24;
+const BREAD_H = 42, PB_H = 14, BANANA_H = 24, EGG_H = 22;
 
 // Turn quantities into a bottom-to-top list of layers.
 export function buildLayers(q) {
   const slices = Math.max(2, q.bread || 2);
   const gaps = slices - 1;
   const layers = [];
-  let pbLeft = q.pb || 0, bnLeft = q.banana || 0;
+  let pbLeft = q.pb || 0, bnLeft = q.banana || 0, egLeft = q.egg || 0;
   for (let s = 0; s < slices; s++) {
     layers.push({ t: "bread", top: s === slices - 1 });
     if (s < gaps) {
       const left = gaps - s;
-      const pb = Math.ceil(pbLeft / left), bn = Math.ceil(bnLeft / left);
-      pbLeft -= pb; bnLeft -= bn;
+      const pb = Math.ceil(pbLeft / left), bn = Math.ceil(bnLeft / left), eg = Math.ceil(egLeft / left);
+      pbLeft -= pb; bnLeft -= bn; egLeft -= eg;
       for (let k = 0; k < Math.min(pb, 2); k++) layers.push({ t: "pb", amt: pb });
       if (bn > 0) layers.push({ t: "banana", amt: bn });
+      if (eg > 0) layers.push({ t: "egg", amt: eg });
     }
   }
   return layers;
@@ -122,23 +135,41 @@ function Coins({ y, amt }) {
   );
 }
 
+function Scramble({ y, amt }) {
+  // fluffy curds: overlapping blobs, more eggs = fuller layer
+  const n = Math.min(6 + amt * 3, 16);
+  const step = (W - 20) / (n - 1);
+  const blobs = Array.from({ length: n }, (_, k) => {
+    const cx = 10 + k * step, wob = (k * 37) % 7;
+    return { cx, cy: EGG_H / 2 + (k % 2 ? -2 : 2), rx: step * 0.85 + 6, ry: EGG_H / 2 - 1 + (wob % 3) };
+  });
+  return (
+    <g transform={`translate(0 ${y})`}>
+      {blobs.map((b, k) => <ellipse key={"a" + k} cx={b.cx} cy={b.cy + 1.5} rx={b.rx} ry={b.ry} fill="#F2A900" />)}
+      {blobs.map((b, k) => <ellipse key={"b" + k} cx={b.cx} cy={b.cy} rx={b.rx - 1.5} ry={b.ry - 1.5} fill="#FFC93C" />)}
+      {blobs.filter((_, k) => k % 2 === 0).map((b, k) => <ellipse key={"c" + k} cx={b.cx - 2} cy={b.cy - 3} rx={b.rx / 3} ry="2" fill="#FFE38A" />)}
+      {blobs.filter((_, k) => k % 3 === 1).map((b, k) => <circle key={"d" + k} cx={b.cx + 3} cy={b.cy + 1} r="1.3" fill="#2F7A3A" />)}
+    </g>
+  );
+}
+
 export function SandwichArt({ qty, className }) {
   const layers = buildLayers(qty);
-  const H = { bread: BREAD_H - 3, pb: PB_H - 4, banana: BANANA_H - 5 };
+  const H = { bread: BREAD_H - 3, pb: PB_H - 4, banana: BANANA_H - 5, egg: EGG_H - 6 };
   const total = layers.reduce((s, l) => s + H[l.t], 0) + 8;
   const pad = 20;
   const vbH = total + pad * 2 + 18;
   let y = vbH - pad - 18; // bottom (above plate shadow)
   const items = layers.map((l, i) => {
-    const h = l.t === "bread" ? BREAD_H : l.t === "pb" ? PB_H : BANANA_H;
+    const h = { bread: BREAD_H, pb: PB_H, banana: BANANA_H, egg: EGG_H }[l.t];
     y -= H[l.t];
     const yy = y - (h - H[l.t]);
-    const el = l.t === "bread" ? <Slice y={yy} top={l.top} /> : l.t === "pb" ? <Spread y={yy} /> : <Coins y={yy} amt={l.amt} />;
+    const el = l.t === "bread" ? <Slice y={yy} top={l.top} /> : l.t === "pb" ? <Spread y={yy} /> : l.t === "egg" ? <Scramble y={yy} amt={l.amt} /> : <Coins y={yy} amt={l.amt} />;
     return <g key={`${i}-${l.t}`} className="layer-in" style={{ animationDelay: `${Math.min(i, 3) * 20}ms` }}>{el}</g>;
   });
   // draw bottom first; later items (higher) paint over lower ones
   return (
-    <svg className={className} viewBox={`-20 0 ${W + 40} ${vbH}`} role="img" aria-label={`Sandwich with ${qty.bread} bread slices, ${qty.pb} tablespoons of peanut butter and ${qty.banana} banana`}>
+    <svg className={className} viewBox={`-20 0 ${W + 40} ${vbH}`} role="img" aria-label={`Sandwich with ${qty.bread} bread slices, ${qty.pb} tablespoons of peanut butter, ${qty.banana} banana and ${qty.egg || 0} scrambled egg`}>
       <ellipse cx={W / 2} cy={vbH - pad - 17} rx={W / 2 - 4} ry="8" fill="#24170E" opacity=".14" />
       {items}
     </svg>

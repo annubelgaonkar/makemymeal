@@ -4,8 +4,8 @@ import { INGREDIENTS } from "@/lib/menu";
 import { CheckIcon, Pill, Toast, TopBar, ago, chime, fmtClock, fmtTime, mapsUrl, primeAudio } from "@/components/ui";
 import { ICONS, LogoMark } from "@/components/art";
 
-const UNIT = { bread: (n) => (n === 1 ? "slice of bread" : "slices of bread"), pb: () => "tbsp peanut butter", banana: (n) => (n === 1 ? "banana" : "bananas") };
-const HINT = { bread: "", pb: "crunchy, unsweetened", banana: "medium, sliced" };
+const UNIT = { bread: (n) => (n === 1 ? "slice of bread" : "slices of bread"), pb: () => "tbsp peanut butter", banana: (n) => (n === 1 ? "banana" : "bananas"), egg: (n) => (n === 1 ? "scrambled egg" : "scrambled eggs") };
+const HINT = { bread: "", pb: "crunchy, unsweetened", banana: "medium, sliced", egg: "large" };
 
 export default function KitchenPage() {
   const [authed, setAuthed] = useState(null); // null = checking

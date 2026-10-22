@@ -19,6 +19,7 @@
   --bread-c:#E3A962; --toast:#F9E4C8;
   --pb-c:#8A4F22;    --nut:#F1DECB;
   --banana-c:#FFD23F; --banana-tint:#FFF1B5;
+  --egg-c:#FF9F43;   --egg-tint:#FFE6CC;
   --cocoa:#2E1D11;   --cocoa-2:#432B19;
   --sky:#2763A8;  --sky-soft:#E7EFF9;
   --amber:#A86A06; --amber-soft:#FDF1D6;
@@ -121,11 +122,12 @@ p{margin:0}
 /* ---------- ingredient rows ---------- */
 .ings{display:grid;gap:12px}
 .ing{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 16px 14px 14px;border-radius:var(--r-md);background:var(--mist);transition:background .2s}
-.ing.bread{background:var(--toast)} .ing.pb{background:var(--nut)} .ing.banana{background:var(--banana-tint)}
+.ing.bread{background:var(--toast)} .ing.pb{background:var(--nut)} .ing.banana{background:var(--banana-tint)} .ing.egg{background:var(--egg-tint)}
 .ing.off{background:var(--mist)}
 .ing.bread .stepper button.plus{background:var(--bread-c)}
 .ing.pb .stepper button.plus{background:var(--pb-c);color:var(--paper)}
 .ing.banana .stepper button.plus{background:var(--banana-c)}
+.ing.egg .stepper button.plus{background:var(--egg-c)}
 .ing .stepper button.plus:hover:not(:disabled){filter:brightness(1.07)}
 .ing-art{width:64px;height:64px;border-radius:16px;background:var(--paper);display:grid;place-items:center}
 .ing-name{font-weight:700;font-size:17px;line-height:1.25}
@@ -311,7 +313,7 @@ textarea{resize:vertical;min-height:84px}
 [data-theme="dark"]{
   color-scheme:dark;
   --paper:#15100C; --ink:#F5EDE6; --ink-2:#BFB1A5; --ink-3:#8E8177; --line:#30261E; --mist:#211912;
-  --banana-soft:#2D2611; --banana-tint:#2D2611; --peanut-soft:#2B2018; --toast:#2A1F16; --nut:#2B2018;
+  --banana-soft:#2D2611; --banana-tint:#2D2611; --egg-tint:#33210F; --peanut-soft:#2B2018; --toast:#2A1F16; --nut:#2B2018;
   --peanut:#D9965A; --leaf:#5CC48A; --leaf-soft:#12291D; --sky:#7FB0EE; --sky-soft:#152338;
   --amber:#F2B34C; --amber-soft:#2E2410; --berry:#F08A7E; --berry-soft:#331512;
   --shadow:0 1px 1px rgba(0,0,0,.3), 0 10px 30px -12px rgba(0,0,0,.6);
@@ -325,7 +327,7 @@ textarea{resize:vertical;min-height:84px}
 [data-theme="dark"] .btn-primary:hover:not(:disabled){background:#FFDD66}
 [data-theme="dark"] .btn-primary .price{background:#24170E;color:var(--banana-c)}
 [data-theme="dark"] .badge,[data-theme="dark"] .btn-yellow,[data-theme="dark"] .kcal,[data-theme="dark"] .kcal span,
-[data-theme="dark"] .ing.bread .stepper button.plus,[data-theme="dark"] .ing.banana .stepper button.plus{color:#24170E}
+[data-theme="dark"] .ing.bread .stepper button.plus,[data-theme="dark"] .ing.banana .stepper button.plus,[data-theme="dark"] .ing.egg .stepper button.plus{color:#24170E}
 [data-theme="dark"] .ing.pb .stepper button.plus{background:#B8733A;color:#fff}
 [data-theme="dark"] .nut{background:#241811;box-shadow:inset 0 0 0 1px var(--line)}
 [data-theme="dark"] .stage::before{box-shadow:0 18px 40px -14px rgba(0,0,0,.7)}

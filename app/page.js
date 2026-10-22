@@ -59,7 +59,7 @@ function Nutrition({ qty }) {
               ))}</tbody>
             </table>
           </div>
-          <p className="hint source">Per 27 g bread slice, 16 g tablespoon of peanut butter and 118 g banana. Values are approximate.</p>
+          <p className="hint source">Per 27 g bread slice, 16 g tablespoon of peanut butter, 118 g banana and 61 g scrambled egg. Values are approximate.</p>
         </details>
       </div>
     </section>
@@ -147,7 +147,7 @@ export default function OrderPage() {
     if (name.length < 2) { setInvalid({ name: true }); setErr("Enter your full name."); return; }
     if (!/^[6-9]\d{9}$/.test(phone)) { setInvalid({ phone: true }); setErr("Enter a 10-digit Indian mobile number starting with 6, 7, 8 or 9."); return; }
     if (address.length < 8) { setInvalid({ address: true }); setErr("Enter a full delivery address with flat, building and area."); return; }
-    if (qty.pb === 0 && qty.banana === 0) { setErr("Add peanut butter or banana. Plain bread isn't much of a sandwich."); return; }
+    if (qty.pb === 0 && qty.banana === 0 && qty.egg === 0) { setErr("Add peanut butter, banana or egg. Plain bread isn't much of a sandwich."); return; }
 
     setPlacing(true);
     try {
@@ -213,8 +213,8 @@ export default function OrderPage() {
       <TopBar active="order" right={bell} />
       <main className="page">
         <section className="hero">
-          <h1>Build your peanut butter banana sandwich.</h1>
-          <p>Choose how much bread, peanut butter and banana goes in. Your chef makes it fresh and it&apos;s handed over only when you share your OTP at the door.</p>
+          <h1>Build your sandwich.</h1>
+          <p>Choose how much bread, peanut butter, banana and scrambled egg goes in. Your chef makes it fresh and it&apos;s handed over only when you share your OTP at the door.</p>
         </section>
 
         <aside className="side" aria-label="Your sandwich">
@@ -232,7 +232,7 @@ export default function OrderPage() {
         </aside>
 
         <section aria-labelledby="buildHead">
-          <div className="sec-head"><div><h2 id="buildHead">What goes in</h2><p>Nutrition shown per slice, tablespoon or banana. Tap + and − to build yours.</p></div></div>
+          <div className="sec-head"><div><h2 id="buildHead">What goes in</h2><p>Nutrition shown per slice, tablespoon, banana or egg. Tap + and − to build yours.</p></div></div>
           <div className="ings">
             {INGREDIENTS.map((i) => {
               const Icon = ICONS[i.key];
