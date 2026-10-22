@@ -15,13 +15,13 @@ function Receipt({ qty }) {
   const subtotal = itemTotal(qty);
   return (
     <>
-      {INGREDIENTS.map((i) => (
+      {INGREDIENTS.filter((i) => qty[i.key] > 0).map((i) => (
         <div className="receipt-row" key={i.key}>
-          <span>{i.styles ? `${ingInfo(i, qty).styleLabel} egg` : i.name} <span className="q">× {qty[i.key]}</span></span><span>₹{qty[i.key] * i.price}</span>
+          <span>{i.styles ? `${ingInfo(i, qty).styleLabel} egg` : i.name}</span><span className="q">× {qty[i.key]}</span>
         </div>
       ))}
       <hr className="receipt-rule" />
-      <div className="receipt-row"><span>Item total</span><span>₹{subtotal}</span></div>
+      <div className="receipt-row"><span>Sandwich</span><span>₹{subtotal}</span></div>
       <div className="receipt-row"><span>Delivery</span><span>₹{DELIVERY_FEE}</span></div>
       <hr className="receipt-rule" />
       <div className="receipt-total"><span className="label">To pay</span><strong>₹{subtotal + DELIVERY_FEE}</strong></div>
@@ -241,7 +241,7 @@ export default function OrderPage() {
                   <div className="ing-art"><Icon size={46} style={qty.eggStyle} /></div>
                   <div>
                     <div className="ing-name">{i.name}</div>
-                    <div className="ing-price"><b>₹{i.price}</b> per {info.per}</div>
+                    <div className="ing-price">Per {info.per}</div>
                     {i.styles && (
                       <div className="style-pick" role="radiogroup" aria-label="How should the egg be cooked?">
                         {Object.entries(i.styles).map(([k, st]) => (

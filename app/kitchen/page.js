@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { INGREDIENTS } from "@/lib/menu";
+import { INGREDIENTS, ingInfo } from "@/lib/menu";
 import { CheckIcon, Pill, Toast, TopBar, ago, chime, fmtClock, fmtTime, mapsUrl, primeAudio } from "@/components/ui";
 import { ICONS, LogoMark } from "@/components/art";
 
@@ -140,7 +140,7 @@ export default function KitchenPage() {
                     return (
                       <div className="t-item" key={i.key} style={n === 0 ? { opacity: .4 } : undefined}>
                         <b>{n}</b>
-                        <span style={{ display: "flex", alignItems: "center", gap: 10 }}><Icon size={28} style={o.items?.eggStyle} /><span>{UNIT[i.key](n, o.items)}{(i.key === "egg" ? EGG_HINT[o.items?.eggStyle === "boiled" ? "boiled" : "scrambled"] : HINT[i.key]) && <small>{i.key === "egg" ? EGG_HINT[o.items?.eggStyle === "boiled" ? "boiled" : "scrambled"] : HINT[i.key]}</small>}</span></span>
+                        <span style={{ display: "flex", alignItems: "center", gap: 10 }}><Icon size={28} style={o.items?.eggStyle} /><span>{UNIT[i.key](n, o.items)}<small>{n > 0 ? `${n * ingInfo(i, o.items).g} g total` : "none"}{(i.key === "egg" ? EGG_HINT[o.items?.eggStyle === "boiled" ? "boiled" : "scrambled"] : HINT[i.key]) ? `, ${i.key === "egg" ? EGG_HINT[o.items?.eggStyle === "boiled" ? "boiled" : "scrambled"] : HINT[i.key]}` : ""}</small></span></span>
                       </div>
                     );
                   })}
